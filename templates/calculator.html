@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+    <div class="vf-card rounded-5 p-4 p-md-5">
+      <h1 class="h2 fw-black mb-1">🧮 Calculadora de preço</h1>
+      <p class="text-muted mb-4">Para não vender com lucro imaginário. Esse bicho morde.</p>
+
+      {% if calc_items %}
+      <div class="vf-soft-note rounded-4 p-3 mb-4">
+        <label class="form-label fw-bold mb-2">⚡ Preencher com produto/venda já cadastrada</label>
+        <select class="form-select rounded-4" data-vf-calc-preset>
+          <option value="">Escolha um produto ou venda para preencher a calculadora...</option>
+          {% for item in calc_items %}
+            <option
+              value="{{ item.key }}"
+              data-cost="{{ item.cost }}"
+              data-profit="{{ item.profit }}"
+              data-discount="{{ item.discount }}"
+              data-price="{{ item.price }}"
+              data-kind="{{ item.kind }}"
+              data-label="{{ item.label }}"
+            >{{ item.label }}</option>
+          {% endfor %}
+        </select>
+        <div class="small text-muted mt-2" data-vf-calc-preset-hint>
+          Dica: produtos usam o “preço mínimo” como custo-base e a diferença até o preço anunciado como lucro/gordura. Vendas usam o valor vendido como referência.
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <form method="post" class="row g-3" data-vf-calc-form>
+            <div class="col-md-6">
+              <label class="form-label">Custo do produto</label>
+              <input type="number" step="0.01" class="form-control rounded-4" name="cost" data-vf-calc-field="cost" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Lucro desejado</label>
+              <input type="number" step="0.01" class="form-control rounded-4" name="desired_profit" data-vf-calc-field="profit" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Taxa da plataforma (%)</label>
+              <input type="number" step="0.01" class="form-control rounded-4" name="fee_percent" data-vf-calc-field="fee" value="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Frete/embalagem</label>
+              <input type="number" step="0.01" class="form-control rounded-4" name="shipping" data-vf-calc-field="shipping" value="0">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Gordura para desconto</label>
+              <input type="number" step="0.01" class="form-control rounded-4" name="discount" data-vf-calc-field="discount" value="0">
+            </div>
+            <div class="col-12 d-grid"><button class="btn btn-vf rounded-pill">Calcular preço</button></div>
+          </form>
+        </div>
+        <div class="col-lg-6">
+          <div class="vf-result rounded-5 p-4 h-100">
+            {% if result %}
+              <small>Preço recomendado</small>
+              <div class="display-6 fw-black mb-3">{{ result.recommended|money }}</div>
+              <div class="vf-list-row"><span>Preço mínimo seguro</span><strong>{{ result.minimum|money }}</strong></div>
+              <div class="vf-list-row"><span>Lucro estimado no recomendado</span><strong>{{ result.profit_at_recommended|money }}</strong></div>
+              <p class="small text-muted mt-3 mb-0">{{ result.warning }}</p>
+            {% else %}
+              <h2 class="h4">Resultado aparece aqui</h2>
+              <p class="text-muted mb-0">Coloque custo, lucro, taxa e frete. Ou escolha um produto/venda no dropdown para preencher mais rápido.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

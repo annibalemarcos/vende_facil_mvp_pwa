@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h2 fw-black mb-1">🎯 Match produto ↔ lead</h1>
+    <p class="text-muted mb-0">Agora o match olha tags, título, categoria, descrição, notas do lead, orçamento e pontuação. Bem menos fresco.</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="vf-stat"><span>📦</span><strong>{{ diagnostics.products }}</strong><small>Produtos disponíveis</small></div></div>
+  <div class="col-6 col-lg-3"><div class="vf-stat"><span>👥</span><strong>{{ diagnostics.leads }}</strong><small>Leads</small></div></div>
+  <div class="col-6 col-lg-3"><div class="vf-stat"><span>🔎</span><strong>{{ diagnostics.pairs }}</strong><small>Cruzamentos lidos</small></div></div>
+  <div class="col-6 col-lg-3"><div class="vf-stat"><span>🎯</span><strong>{{ diagnostics.visible }}</strong><small>Com algum sinal</small></div></div>
+</div>
+
+<form class="vf-filter rounded-4 p-3 mb-4" method="get">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-7">
+      <label class="form-label small text-muted">Produto</label>
+      <select class="form-select rounded-pill" name="product_id">
+        <option value="">Todos os produtos disponíveis</option>
+        {% for p in products %}<option value="{{ p.id }}" {% if product_id==p.id %}selected{% endif %}>{{ p.title }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted">Mostrar a partir de</label>
+      <select class="form-select rounded-pill" name="min_score">
+        {% for n in [0, 1, 10, 25, 40, 70] %}
+          <option value="{{ n }}" {% if min_score==n %}selected{% endif %}>{{ n }}%</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-grid"><button class="btn btn-dark rounded-pill">Calcular</button></div>
+  </div>
+  <div class="form-text mt-2">Dica: se não aparecer nada, coloque “0%” para diagnóstico. Match bom nasce de tags parecidas, notas úteis e orçamento preenchido.</div>
+</form>
+
+{% if diagnostics.products == 0 or diagnostics.leads == 0 %}
+  <div class="alert alert-warning rounded-4 border-0 mb-4">
+    <strong>O match ainda não tem matéria-prima.</strong>
+    Você precisa de pelo menos <strong>1 produto disponível</strong> e <strong>1 lead</strong>. Produto vendido não entra no cálculo.
+  </div>
+{% endif %}
+
+<div class="row g-3">
+{% for m in matches %}
+  <div class="col-lg-6">
+    <div class="vf-match-card rounded-5 p-4 h-100">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <span class="badge rounded-pill text-bg-light mb-2">{{ m.emoji }} {{ m.label }}</span>
+          <h2 class="h5 mb-1">{{ m.product.title }}</h2>
+          <div class="text-muted small">para <strong>{{ m.lead.name }}</strong> • orçamento {{ m.lead.budget|money }}</div>
+        </div>
+        <div class="vf-big-score">{{ m.score }}%</div>
+      </div>
+      <ul class="mb-3">
+        {% for reason in m.reasons %}<li>{{ reason }}</li>{% endfor %}
+      </ul>
+      <details class="mb-3">
+        <summary class="small text-muted">Ver diagnóstico do cálculo</summary>
+        <div class="small mt-2">
+          <strong>Termos do produto:</strong> {{ m.debug.product_terms|join(', ') or 'nenhum' }}<br>
+          <strong>Termos do lead:</strong> {{ m.debug.lead_terms|join(', ') or 'nenhum' }}<br>
+          <strong>Iguais:</strong> {{ (m.debug.explicit_common + m.debug.text_common)|join(', ') or 'nenhum' }}
+        </div>
+      </details>
+      <div class="vf-tags mb-3">
+        {% for tag in m.product.tags.split(',') if tag.strip() %}<span>{{ tag.strip() }}</span>{% endfor %}
+      </div>
+      <textarea id="msg{{ loop.index }}" class="form-control rounded-4" rows="3">Oi {{ m.lead.name }}! Vi que talvez você tenha interesse em {{ m.product.title }}. Está por {{ m.product.price|money }}. Quer que eu te mande mais fotos/vídeo?</textarea>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button class="btn btn-sm btn-vf rounded-pill" data-copy-target="msg{{ loop.index }}">Copiar mensagem</button>
+        <a class="btn btn-sm btn-light rounded-pill" href="{{ url_for('product_edit', product_id=m.product.id) }}">Produto</a>
+        <a class="btn btn-sm btn-light rounded-pill" href="{{ url_for('lead_edit', lead_id=m.lead.id) }}">Lead</a>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="col-12">
+    <div class="vf-empty rounded-5 p-5 text-center">
+      <h2 class="h4">Sem matches nessa régua.</h2>
+      <p class="text-muted mb-3">Baixe o filtro para 0% ou adicione tags parecidas no produto e no lead. Exemplo: produto com <strong>freezer, cozinha</strong> e lead com <strong>freezer, comércio</strong>.</p>
+      <a class="btn btn-vf rounded-pill" href="{{ url_for('matches', min_score=0) }}">Ver diagnóstico em 0%</a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <div class="vf-card rounded-5 p-4 p-md-5">
+      <h1 class="h2 fw-black mb-3">Sobre o MVP</h1>
+      <p>Este é um MVP local do <strong>Vende Fácil</strong>: um web app instalável/PWA feito com Flask, pensado para vendedores casuais organizarem produtos, anúncios, leads, matches e recebíveis.</p>
+      <div class="row g-3 mt-2">
+        <div class="col-md-6"><div class="vf-info-box">✅ Funciona localmente no Windows</div></div>
+        <div class="col-md-6"><div class="vf-info-box">✅ SQLite local ou Postgres em produção</div></div>
+        <div class="col-md-6"><div class="vf-info-box">✅ Exportação JSON</div></div>
+        <div class="col-md-6"><div class="vf-info-box">✅ Pronto para evoluir para API/app mobile</div></div>
+      </div>
+      <hr class="my-4">
+      <p class="mb-0 text-muted">Próximo passo natural: login, upload real de fotos, integração com IA para descrição/preço e build mobile em Flutter ou Tauri.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

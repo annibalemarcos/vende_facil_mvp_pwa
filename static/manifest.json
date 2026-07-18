@@ -1,0 +1,10 @@
+{
+  "name": "Vende Fácil",
+  "short_name": "Vende Fácil",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7ff",
+  "theme_color": "#7c3aed",
+  "description": "Hub divertido para vendedores casuais organizarem produtos, anúncios, leads e vendas.",
+  "icons": []
+}

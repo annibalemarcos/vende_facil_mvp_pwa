@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h2 fw-black mb-1">💸 Vendas e recebíveis</h1>
+    <p class="text-muted mb-0">Controle o que vendeu, quem comprou e o que ainda falta cair no bolso.</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-2"><div class="vf-stat"><span>💚</span><strong>{{ stats.received|money }}</strong><small>Recebido</small></div></div>
+  <div class="col-6 col-lg-2"><div class="vf-stat"><span>⏳</span><strong>{{ stats.receivable|money }}</strong><small>A receber</small></div></div>
+  <div class="col-6 col-lg-2"><div class="vf-stat"><span>💸</span><strong>{{ stats.sold_total|money }}</strong><small>Total vendido</small></div></div>
+  <div class="col-6 col-lg-2"><div class="vf-stat"><span>🧾</span><strong>{{ stats.average_ticket|money }}</strong><small>Ticket médio</small></div></div>
+  <div class="col-6 col-lg-2"><div class="vf-stat"><span>📌</span><strong>{{ stats.count }}</strong><small>Vendas</small></div></div>
+  <div class="col-6 col-lg-2"><div class="vf-stat"><span>⚠️</span><strong>{{ stats.pending + stats.partial }}</strong><small>Pend./parcial</small></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="vf-card rounded-5 p-4 sticky-lg-top vf-sticky">
+      <h2 class="h4 mb-3">Registrar venda</h2>
+      <form method="post" class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Produto</label>
+          <select required class="form-select rounded-4" name="product_id" data-vf-product-price-select>
+            {% for p in products %}<option value="{{ p.id }}" data-price="{{ p.price or 0 }}">{{ p.title }} — {{ p.price|money }}</option>{% endfor %}
+          </select>
+          {% if not products %}<div class="form-text text-danger">Não há produtos disponíveis. Cadastre um produto antes.</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Comprador</label>
+          <div class="d-flex flex-wrap gap-2">
+            <label class="vf-choice"><input type="radio" name="buyer_mode" value="lead" checked> Lead cadastrado</label>
+            <label class="vf-choice"><input type="radio" name="buyer_mode" value="custom"> Comprador avulso</label>
+          </div>
+        </div>
+
+        <div class="col-12" data-vf-sale-section="lead">
+          <select class="form-select rounded-4" name="lead_id">
+            <option value="">Sem lead</option>
+            {% for l in leads %}<option value="{{ l.id }}">{{ l.name }}{% if l.whatsapp %} — {{ l.whatsapp }}{% endif %}{% if l.city %} • {{ l.city }}{% endif %}</option>{% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12" data-vf-sale-section="custom" hidden>
+          <div class="vf-soft-box p-3">
+            <div class="row g-2">
+              <div class="col-12"><input class="form-control rounded-4" name="buyer_name" placeholder="Nome do comprador"></div>
+              <div class="col-md-6"><input class="form-control rounded-4" name="buyer_whatsapp" placeholder="WhatsApp"></div>
+              <div class="col-md-6"><input class="form-control rounded-4" name="buyer_source" placeholder="De onde veio?"></div>
+            </div>
+            <div class="form-text mt-2">Campos opcionais. É venda rápida, não interrogatório da Receita.</div>
+          </div>
+        </div>
+
+        <div class="col-md-6"><label class="form-label">Valor</label><input type="number" step="0.01" class="form-control rounded-4" name="sale_price" data-vf-sale-price></div>
+        <div class="col-md-6"><label class="form-label">Data</label><input type="date" class="form-control rounded-4" name="sold_at" value="{{ today }}"></div>
+        <div class="col-md-6">
+          <label class="form-label">Pagamento</label>
+          <select class="form-select rounded-4" name="payment_status">{% for s in payment_statuses %}<option value="{{ s }}" {% if s == 'recebido' %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+        </div>
+        <div class="col-md-6"><label class="form-label">Plataforma</label><input class="form-control rounded-4" name="platform" placeholder="OLX, WhatsApp..."></div>
+        <div class="col-12"><label class="form-label">Notas</label><textarea class="form-control rounded-4" name="notes" rows="3"></textarea></div>
+        <div class="col-12 d-grid"><button class="btn btn-vf rounded-pill" {% if not products %}disabled{% endif %}>Registrar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="vf-card rounded-5 p-4 mb-4">
+      <h2 class="h4 mb-3">Resumo rápido</h2>
+      <div class="row g-3">
+        <div class="col-md-6"><div class="vf-info-box"><strong>👥 Vendas com lead</strong><p class="mb-0 small text-muted">{{ stats.with_lead }} venda(s) ligada(s) a leads cadastrados.</p></div></div>
+        <div class="col-md-6"><div class="vf-info-box"><strong>🧍 Comprador avulso</strong><p class="mb-0 small text-muted">{{ stats.avulso }} venda(s) com comprador solto ou sem identificação.</p></div></div>
+      </div>
+    </div>
+
+    <div class="vf-card rounded-5 p-4">
+      <h2 class="h4 mb-3">Histórico</h2>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>Produto</th><th>Comprador</th><th>Valor</th><th>Status</th><th>Data</th><th></th></tr></thead>
+          <tbody>
+          {% for s in sales %}
+            <tr>
+              <td><strong>{{ s.product_title }}</strong><br><small>{{ s.platform or s.buyer_source or 'sem plataforma' }}</small></td>
+              <td>
+                <strong>{{ s.lead_name or s.buyer_name or '—' }}</strong><br>
+                <small class="text-muted">
+                  {% if s.lead_name %}lead cadastrado{% elif s.buyer_name %}comprador avulso{% else %}sem comprador{% endif %}
+                  {% if s.lead_whatsapp or s.buyer_whatsapp %} • {{ s.lead_whatsapp or s.buyer_whatsapp }}{% endif %}
+                </small>
+              </td>
+              <td><strong>{{ s.sale_price|money }}</strong></td>
+              <td><span class="badge rounded-pill {% if s.payment_status == 'recebido' %}text-bg-success{% elif s.payment_status == 'parcial' %}text-bg-info{% else %}text-bg-warning{% endif %}">{{ s.payment_status }}</span></td>
+              <td>{{ s.sold_at }}</td>
+              <td><form method="post" action="{{ url_for('sale_delete', sale_id=s.id) }}" onsubmit="return confirm('Remover venda?')"><button class="btn btn-sm btn-outline-danger rounded-pill">Excluir</button></form></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="text-muted">Nenhuma venda registrada ainda.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

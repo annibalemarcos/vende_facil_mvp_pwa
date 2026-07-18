@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="vf-hero rounded-5 p-4 p-md-5 mb-4">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-8">
+      <span class="badge rounded-pill text-bg-light mb-3">MVP local • mobile-first • PWA</span>
+      <h1 class="display-6 fw-black mb-2">Seu balcão de vendas, só que esperto.</h1>
+      <p class="lead mb-0">
+        Produtos, anúncios, leads, match e dinheiro no mesmo painel.
+        {% if app_settings.fun_mode == '1' %}
+          ERP de terno? Aqui não. Aqui é venda com café, Pix e emoji.
+        {% else %}
+          Organização simples, rápida e sem complicação.
+        {% endif %}
+      </p>
+    </div>
+    <div class="col-lg-4">
+      <div class="vf-quick-card rounded-5 p-4">
+        <div class="small text-muted mb-2">Atalhos rápidos</div>
+        <div class="d-grid gap-2">
+          <a class="btn btn-light rounded-pill" href="{{ url_for('product_new') }}">+ Cadastrar produto</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('olx_bulk_import') }}">🧺 Importar OLX em lote</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('lead_new') }}">+ Cadastrar lead</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('quarantine') }}">🧊 Ver quarentena{% if stats.quarantine %} ({{ stats.quarantine }}){% endif %}</a>
+          <a class="btn btn-dark rounded-pill" href="{{ url_for('settings') }}">⚙️ Configurar app</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="vf-stats-grid mb-4">
+  <div class="vf-stat vf-stat-money"><span>🎯</span><strong>{{ stats.expected_profit|money }}</strong><small>Expectativa de lucro</small></div>
+  <div class="vf-stat vf-stat-money"><span>📣</span><strong>{{ stats.listed_value|money }}</strong><small>Valor em anúncios ativos</small></div>
+  <div class="vf-stat"><span>📦</span><strong>{{ stats.products }}</strong><small>Produtos</small></div>
+  <div class="vf-stat"><span>✅</span><strong>{{ stats.sold }}</strong><small>Vendidos</small></div>
+  <div class="vf-stat"><span>🧊</span><strong>{{ stats.quarantine }}</strong><small>Quarentena</small></div>
+  <div class="vf-stat"><span>👥</span><strong>{{ stats.leads }}</strong><small>Leads</small></div>
+  <div class="vf-stat"><span>💚</span><strong>{{ stats.revenue|money }}</strong><small>Recebido</small></div>
+  <div class="vf-stat"><span>⏳</span><strong>{{ stats.receivable|money }}</strong><small>A receber</small></div>
+  <div class="vf-stat"><span>💸</span><strong>{{ stats.sold_total|money }}</strong><small>Total vendido</small></div>
+  <div class="vf-stat"><span>🧾</span><strong>{{ stats.average_ticket|money }}</strong><small>Ticket médio</small></div>
+  <div class="vf-stat"><span>🛡️</span><strong>{{ stats.minimum_value|money }}</strong><small>Mínimo seguro</small></div>
+  <div class="vf-stat"><span>🤝</span><strong>{{ stats.discount_room|money }}</strong><small>Margem p/ desconto</small></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><div class="vf-info-box"><strong>📌 Leitura rápida</strong><p class="mb-0 small text-muted">Se vendesse tudo que ainda não está marcado como vendido pelo preço cadastrado, a expectativa seria <strong>{{ stats.expected_profit|money }}</strong>. O mínimo de segurança cadastrado soma <strong>{{ stats.minimum_value|money }}</strong>.</p></div></div>
+  <div class="col-md-6"><div class="vf-info-box"><strong>📣 Anúncios e recebíveis</strong><p class="mb-0 small text-muted">Você tem <strong>{{ stats.active_links }}</strong> link(s) de anúncio ativo(s) e <strong>{{ stats.pending_sales }}</strong> venda(s) com pagamento pendente/parcial.</p></div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="vf-card rounded-5 p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">🎯 Matches quentes</h2>
+        <a class="btn btn-sm btn-outline-dark rounded-pill" href="{{ url_for('matches') }}">ver todos</a>
+      </div>
+      {% for m in top_matches %}
+        <div class="vf-match-mini">
+          <div>
+            <strong>{{ m.emoji }} {{ m.product.title }}</strong><br>
+            <small>para {{ m.lead.name }} • {{ m.reasons[0] }}</small>
+          </div>
+          <span class="badge rounded-pill text-bg-dark">{{ m.score }}%</span>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Cadastre produtos e leads com tags para o match acordar do cochilo.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="vf-card rounded-5 p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">🔥 Produtos quentes</h2>
+        <a class="btn btn-sm btn-outline-dark rounded-pill" href="{{ url_for('product_new') }}">+ produto</a>
+      </div>
+      {% for p in hot_products %}
+        <div class="vf-list-row">
+          <div>
+            <strong>{{ p.title }}</strong><br>
+            <small>{{ p.category }} • {{ p.tags }}</small>
+          </div>
+          <span class="fw-bold">{{ p.price|money }}</span>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Nenhum produto quente ainda. Marca um campeão com 🔥.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="vf-card rounded-5 p-4 h-100">
+      <h2 class="h4 mb-3">❄️ Produtos pedindo socorro</h2>
+      {% for p in cold_products %}
+        <div class="vf-list-row">
+          <div>
+            <strong>{{ p.title }}</strong><br>
+            <small>Status: {{ p.status }} • {{ p.temperature }}</small>
+          </div>
+          <a class="btn btn-sm btn-light rounded-pill" href="{{ url_for('product_suggest', product_id=p.id) }}">melhorar</a>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Nada congelado por aqui. Milagre comercial ou banco vazio.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="vf-card rounded-5 p-4 h-100">
+      <h2 class="h4 mb-3">💸 Últimas vendas</h2>
+      {% for sale in recent_sales %}
+        <div class="vf-list-row">
+          <div>
+            <strong>{{ sale.product_title }}</strong><br>
+            <small>{{ sale.lead_name or sale.buyer_name or 'sem comprador' }} • {{ sale.payment_status }}</small>
+          </div>
+          <span class="fw-bold">{{ sale.sale_price|money }}</span>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Nenhuma venda registrada. O Pix ainda está ensaiando a entrada triunfal.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

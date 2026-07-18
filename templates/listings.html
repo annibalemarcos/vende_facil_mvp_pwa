@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h2 fw-black mb-1">📣 Anúncios</h1>
+    <p class="text-muted mb-0">Links e métricas manuais por plataforma. Agora também importa anúncio da OLX por link.</p>
+  </div>
+  <a class="btn btn-vf rounded-pill" href="{{ url_for('olx_import') }}">🧲 Importar anúncio da OLX</a>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="vf-card rounded-5 p-4 sticky-lg-top vf-sticky">
+      <h2 class="h4 mb-3">Adicionar anúncio/link</h2>
+      <form method="post" class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Produto</label>
+          <select required class="form-select rounded-4" name="product_id">
+            {% for p in products %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Plataforma</label>
+          <select class="form-select rounded-4" name="platform">
+            {% for p in platforms %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label">URL</label><input class="form-control rounded-4" name="url" placeholder="https://..."></div>
+        <div class="col-12"><label class="form-label">Status</label><input class="form-control rounded-4" name="status" value="ativo"></div>
+        <div class="col-4"><label class="form-label">Visitas</label><input type="number" class="form-control rounded-4" name="views" value="0"></div>
+        <div class="col-4"><label class="form-label">Mensagens</label><input type="number" class="form-control rounded-4" name="messages" value="0"></div>
+        <div class="col-4"><label class="form-label">Cliques</label><input type="number" class="form-control rounded-4" name="clicks" value="0"></div>
+        <div class="col-12 d-grid"><button class="btn btn-vf rounded-pill">Salvar anúncio</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="vf-card rounded-5 p-4">
+      <h2 class="h4 mb-3">Links salvos</h2>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>Produto</th><th>Plataforma</th><th>Status</th><th>Métricas</th><th></th></tr></thead>
+          <tbody>
+          {% for l in listings %}
+            <tr>
+              <td><strong>{{ l.product_title }}</strong><br>{% if l.url %}<a href="{{ l.url }}" target="_blank">abrir anúncio</a>{% else %}<small class="text-muted">sem link</small>{% endif %}</td>
+              <td>{{ l.platform }}</td>
+              <td><span class="badge rounded-pill text-bg-light">{{ l.status }}</span></td>
+              <td><small>{{ l.views }} visitas • {{ l.messages }} msgs • {{ l.clicks }} cliques</small></td>
+              <td><form method="post" action="{{ url_for('listing_delete', listing_id=l.id) }}" onsubmit="return confirm('Remover link?')"><button class="btn btn-sm btn-outline-danger rounded-pill">Excluir</button></form></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-muted">Nenhum anúncio salvo ainda.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

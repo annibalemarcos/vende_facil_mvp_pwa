@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-8">
+    <div class="vf-card rounded-5 p-4 p-md-5">
+      <h1 class="h2 fw-black mb-1">{{ 'Editar lead' if lead else 'Novo lead' }}</h1>
+      <p class="text-muted mb-4">Salve preferências agora. Seu eu do futuro vai te agradecer, talvez com Pix.</p>
+      <form method="post" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nome</label>
+          <input required class="form-control form-control-lg rounded-4" name="name" value="{{ lead.name if lead else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">WhatsApp</label>
+          <input class="form-control form-control-lg rounded-4" name="whatsapp" value="{{ lead.whatsapp if lead else '' }}" placeholder="5519999999999">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cidade/bairro</label>
+          <input class="form-control rounded-4" name="city" value="{{ lead.city if lead else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Orçamento</label>
+          <input type="number" step="0.01" class="form-control rounded-4" name="budget" value="{{ lead.budget if lead else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Pontuação</label>
+          <input type="number" min="0" max="100" class="form-control rounded-4" name="score" value="{{ lead.score if lead else 50 }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Tags</label>
+          <input id="lead-tags" class="form-control rounded-4" name="tags" value="{{ lead.tags if lead else '' }}" placeholder="cozinha, freezer, barato, pix, campinas" data-tag-input>
+          <div class="form-text">Separe por vírgulas. O app reaproveita as tags que você já usou.</div>
+          <div class="vf-tag-suggestions mt-2" data-tag-suggestions-for="lead-tags">
+            {% for item in tag_suggestions[:30] %}
+              <button type="button" class="vf-tag-suggestion" data-tag-value="{{ item.tag }}">{{ item.tag }} <small>{{ item.count }}x</small></button>
+            {% else %}
+              <span class="text-muted small">Ainda sem sugestões. O primeiro cadastro é raiz; depois o app vira memória de elefante.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notas</label>
+          <textarea class="form-control rounded-4" name="notes" rows="5" placeholder="O que procura, histórico, forma de pagamento, se negocia muito...">{{ lead.notes if lead else '' }}</textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-vf rounded-pill px-4">Salvar</button>
+          <a class="btn btn-light rounded-pill px-4" href="{{ url_for('leads') }}">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h2 fw-black mb-1">🧊 Quarentena de produtos</h1>
+    <p class="text-muted mb-0">Produtos únicos vendidos saem da lista principal e ficam aqui por {{ quarantine_days }} dias. Dá para trazer de volta ou apagar de vez.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-light rounded-pill" href="{{ url_for('products') }}">📦 Produtos ativos</a>
+    <a class="btn btn-vf rounded-pill" href="{{ url_for('product_new') }}">+ Novo produto</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for p in products %}
+  <div class="col-md-6 col-xl-4">
+    <div class="vf-quarantine-card rounded-5 p-3 h-100">
+      <div class="vf-product-img rounded-4 mb-3" {% if p.image_url %}style="background-image:url('{{ p.image_url }}')"{% endif %}>
+        {% if not p.image_url %}<span>🧊</span>{% endif %}
+      </div>
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <h2 class="h5 mb-1">{{ p.title }}</h2>
+        <span class="badge text-bg-light">{{ p.price|money }}</span>
+      </div>
+      <p class="text-muted small mb-2">{{ p.category or 'sem categoria' }} • qtd {{ p.quantity }} • {{ p.status }}</p>
+      <p class="vf-clamp small">{{ p.description or 'Produto vendido e guardado na quarentena.' }}</p>
+      <div class="vf-quarantine-meta mb-3">
+        <span>Entrada: {{ p.quarantined_at }}</span>
+        <span>Prazo: {{ p.deadline }}</span>
+        {% if p.can_restore %}<span>{{ p.days_left }} dia(s) para restaurar</span>{% else %}<span>prazo encerrado</span>{% endif %}
+      </div>
+      {% if p.quarantine_reason %}<p class="small text-muted mb-3">Motivo: {{ p.quarantine_reason }}</p>{% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        {% if p.can_restore %}
+        <form method="post" action="{{ url_for('product_restore', product_id=p.id) }}">
+          <button class="btn btn-sm btn-vf rounded-pill">♻️ Trazer de volta</button>
+        </form>
+        {% else %}
+          <button class="btn btn-sm btn-light rounded-pill" disabled>♻️ Restaurar expirou</button>
+        {% endif %}
+        <form method="post" action="{{ url_for('product_delete_forever', product_id=p.id) }}" onsubmit="return confirm('Apagar este produto de vez? Isso remove também vendas e anúncios ligados a ele.')">
+          <button class="btn btn-sm btn-outline-danger rounded-pill">Apagar de vez</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12"><div class="vf-empty rounded-5 p-5 text-center">Nada na quarentena. Nenhum produto vendido ficou preso no gelo ainda.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

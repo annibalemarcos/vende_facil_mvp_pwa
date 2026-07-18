@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="fw-black mb-1">⚙️ Configurações</h1>
+    <p class="text-muted mb-0">Ajuste o app, o login e os backups. O painel de controle do balcão.</p>
+  </div>
+  <a class="btn btn-outline-dark rounded-pill" href="{{ url_for('dashboard') }}">voltar ao painel</a>
+</div>
+
+<form method="post" class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="vf-card rounded-5 p-4 mb-4">
+      <h2 class="h4 mb-3">Identidade do app</h2>
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label">Nome do app</label>
+          <input class="form-control form-control-lg" name="app_name" value="{{ app_settings.app_name }}" maxlength="40">
+          <div class="form-text">Aparece no topo, no título da página e no rodapé.</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Emoji/marca</label>
+          <input class="form-control form-control-lg" name="brand_emoji" value="{{ app_settings.brand_emoji }}" maxlength="8">
+          <div class="form-text">Pode ser 🛒, 🧺, 💸, ⚡...</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Cidade/região padrão</label>
+          <input class="form-control" name="default_city" value="{{ app_settings.default_city }}" placeholder="Ex.: Campinas/SP">
+          <div class="form-text">Usada nos textos sugeridos dos anúncios.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vf-card rounded-5 p-4 mb-4">
+      <h2 class="h4 mb-3">🔐 Login único</h2>
+      <div class="row g-3">
+        <div class="col-md-7">
+          <label class="form-label">Usuário/e-mail de login</label>
+          <input type="email" class="form-control" name="login_email" value="{{ app_settings.login_email }}" placeholder="admin@vendefacil.com">
+          <div class="form-text">Esse será o usuário para entrar no app.</div>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Nova senha</label>
+          <input type="password" class="form-control" name="login_password" placeholder="Deixe vazio para manter">
+          <div class="form-text">Por segurança, a senha atual não aparece aqui.</div>
+        </div>
+      </div>
+      <div class="alert alert-warning rounded-4 mt-3 mb-0">
+        <strong>Importante:</strong> se você importar um backup, o login salvo naquele backup também volta junto.
+      </div>
+    </div>
+
+    <div class="vf-card rounded-5 p-4 mb-4">
+      <h2 class="h4 mb-3">Match e alertas</h2>
+      <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label">Mostrar alerta no topo</label>
+          <div class="form-check form-switch vf-switch-lg">
+            <input class="form-check-input" type="checkbox" role="switch" name="show_match_alert" id="show_match_alert" {% if app_settings.show_match_alert == '1' %}checked{% endif %}>
+            <label class="form-check-label" for="show_match_alert">Avisar quando houver match bom</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Som quando der match</label>
+          <div class="form-check form-switch vf-switch-lg">
+            <input class="form-check-input" type="checkbox" role="switch" name="match_sound" id="match_sound" {% if app_settings.match_sound == '1' %}checked{% endif %}>
+            <label class="form-check-label" for="match_sound">Tocar um plim curto no alerta</label>
+          </div>
+          <div class="form-text">Se o navegador bloquear autoplay, o som toca após o primeiro clique.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Pontuação mínima do alerta</label>
+          <input class="form-control" type="number" min="25" max="95" step="5" name="match_threshold" value="{{ app_settings.match_threshold }}">
+          <div class="form-text">Ex.: 70 mostra só matches de 70% para cima.</div>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+          <button class="btn btn-outline-dark rounded-pill w-100" type="button" data-vf-test-match-sound>Testar som do match 🔊</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vf-card rounded-5 p-4">
+      <h2 class="h4 mb-3">Personalidade</h2>
+      <div class="form-check form-switch vf-switch-lg">
+        <input class="form-check-input" type="checkbox" role="switch" name="fun_mode" id="fun_mode" {% if app_settings.fun_mode == '1' %}checked{% endif %}>
+        <label class="form-check-label" for="fun_mode">Usar textos mais descontraídos</label>
+      </div>
+      <p class="text-muted small mt-2 mb-0">Quando desligado, algumas frases ficam mais neutras. O app continua útil; só para de fazer gracinha no elevador.</p>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="vf-card rounded-5 p-4 mb-4">
+      <h2 class="h4 mb-3">Tema visual</h2>
+      <div class="row g-2">
+        {% for key, theme in themes.items() %}
+          <div class="col-12">
+            <label class="vf-theme-option {% if app_settings.theme == key %}active{% endif %}">
+              <input type="radio" name="theme" value="{{ key }}" {% if app_settings.theme == key %}checked{% endif %}>
+              <span class="vf-theme-dot" style="background: linear-gradient(135deg, {{ theme.primary }}, {{ theme.secondary }});"></span>
+              <span>
+                <strong>{{ theme.label }}</strong><br>
+                <small>{{ key }}</small>
+              </span>
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="vf-card rounded-5 p-4 mb-4">
+      <h2 class="h4 mb-3">Prévia</h2>
+      <div class="vf-preview rounded-4 p-3">
+        <div class="fw-black fs-4">{{ app_settings.brand_emoji }} {{ app_settings.app_name }}</div>
+        <p class="mb-3 text-muted">Alerta aparece a partir de {{ app_settings.match_threshold }}%.</p>
+        <span class="badge rounded-pill text-bg-dark">{{ app_settings.default_city }}</span>
+      </div>
+    </div>
+
+    <div class="vf-card rounded-5 p-4">
+      <h2 class="h4 mb-3">Salvar alterações</h2>
+      <p class="text-muted mb-3">Salva nome, tema, alertas e login.</p>
+      <div class="d-grid gap-2">
+        <button class="btn btn-vf rounded-pill btn-lg" type="submit">Salvar configurações</button>
+      </div>
+      <p class="small text-muted mt-3 mb-0">Para zerar tudo, feche o app e rode <code>reset_data.bat</code>.</p>
+    </div>
+  </div>
+</form>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="vf-card rounded-5 p-4 h-100">
+      <h2 class="h4 mb-3">📤 Exportar backup completo</h2>
+      <p class="text-muted">Exporta produtos, leads, anúncios, vendas, configurações, login e imagens importadas em um JSON.</p>
+      <a class="btn btn-outline-dark rounded-pill" href="{{ url_for('export_data') }}">Baixar backup JSON</a>
+      <p class="small text-muted mt-3 mb-0">Guarde esse arquivo com cuidado: ele pode conter sua senha de login do app.</p>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="vf-card rounded-5 p-4 h-100">
+      <h2 class="h4 mb-3">📥 Importar backup</h2>
+      <form method="post" action="{{ url_for('import_data') }}" enctype="multipart/form-data" class="row g-3">
+        <div class="col-12">
+          <input class="form-control rounded-4" type="file" name="backup_file" accept="application/json,.json">
+        </div>
+        <div class="col-12">
+          <label class="form-check">
+            <input class="form-check-input" type="checkbox" name="confirm_replace" value="1">
+            <span class="form-check-label">Entendi que isso substitui os dados atuais pelo backup.</span>
+          </label>
+        </div>
+        <div class="col-12 d-grid">
+          <button class="btn btn-dark rounded-pill">Importar e substituir</button>
+        </div>
+      </form>
+      <p class="small text-muted mt-3 mb-0">Depois de importar, você será deslogado para entrar com o login restaurado.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4 justify-content-center">
+  <div class="col-xl-9">
+    <div class="vf-card rounded-5 p-4 p-md-5 mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <h1 class="h2 fw-black mb-1">🧲 Importar anúncio da OLX</h1>
+          <p class="text-muted mb-0">Cole o link, o app tenta puxar título, preço, descrição limpa, capa, categoria e tags. Você revisa antes de salvar.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-light rounded-pill" href="{{ url_for('text_import') }}">Importar por texto</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('olx_bulk_import') }}">Importar em lote</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('products') }}">Voltar para produtos</a>
+        </div>
+      </div>
+
+      <form method="post" class="row g-2 align-items-end">
+        <div class="col-md-9">
+          <label class="form-label">Link do anúncio OLX</label>
+          <input required type="url" class="form-control form-control-lg rounded-4" name="url" value="{{ url }}" placeholder="https://sp.olx.com.br/...">
+        </div>
+        <div class="col-md-3 d-grid">
+          <button class="btn btn-vf btn-lg rounded-4">Importar</button>
+        </div>
+      </form>
+
+      <div class="vf-info-box mt-4">
+        <strong>Como ele importa?</strong>
+        <p class="mb-0 small text-muted">Ele lê metadados públicos da página da OLX, como <code>og:title</code>, <code>og:description</code>, imagem e dados estruturados quando existem. Quando encontra a capa, tenta baixar uma cópia local para o app. Se a OLX bloquear com 403, use <a href="{{ url_for('text_import') }}">Importar por texto colado</a>: você copia o anúncio aberto no navegador e o app separa os campos. Sem gambiarra de login, sem roubar cookie, sem cosplay de hacker de padaria.</p>
+      </div>
+    </div>
+
+    {% if imported %}
+    <div class="vf-card rounded-5 p-4 p-md-5">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+          <h2 class="h3 fw-black mb-1">Prévia importada</h2>
+          <p class="text-muted mb-0">Revise os campos abaixo. Depois clique em salvar para criar o produto e registrar o link da OLX em Anúncios.</p>
+        </div>
+        <span class="badge rounded-pill text-bg-light">Fonte: OLX</span>
+      </div>
+
+      {% if imported.warnings %}
+      <div class="alert alert-warning rounded-4 border-0">
+        <strong>Atenção:</strong>
+        <ul class="mb-0 mt-2">
+          {% for warning in imported.warnings %}<li>{{ warning }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if imported.mode == 'manual' %}
+      <div class="alert alert-info rounded-4 border-0">
+        <strong>Modo manual assistido:</strong> a OLX não deixou o app ler a página automaticamente.
+        Abra o anúncio original, copie título/preço/descrição e cole aqui. Ao salvar, o app ainda registra o link e tenta baixar a capa se você colar uma URL de imagem.
+      </div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('product_new') }}" class="row g-3">
+        <input type="hidden" name="source_url" value="{{ imported.source_url }}">
+        <input type="hidden" name="source_platform" value="OLX">
+
+        <div class="col-md-8">
+          <label class="form-label">Nome do produto</label>
+          <input required class="form-control form-control-lg rounded-4" name="title" value="{{ imported.title }}" placeholder="Ex: Freezer Horizontal 400L funcionando">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Categoria</label>
+          <input class="form-control form-control-lg rounded-4" name="category" value="{{ imported.category }}" placeholder="Cozinha, Bebê...">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descrição</label>
+          <textarea class="form-control rounded-4" name="description" rows="5" placeholder="Estado, detalhes, retirada, teste, vídeo...">{{ imported.description }}</textarea>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Preço</label>
+          <input type="number" step="0.01" class="form-control rounded-4" name="price" value="{{ '%.2f'|format(imported.price or 0) }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Preço mínimo</label>
+          <input type="number" step="0.01" class="form-control rounded-4" name="min_price" value="{{ imported.min_price or '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Qtd.</label>
+          <input type="number" class="form-control rounded-4" name="quantity" value="{{ imported.quantity or 1 }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Status</label>
+          <select class="form-select rounded-4" name="status">
+            {% for s in statuses %}<option value="{{ s }}" {% if imported.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Temperatura</label>
+          <select class="form-select rounded-4" name="temperature">
+            {% for t in temperatures %}<option value="{{ t }}" {% if imported.temperature==t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Tags</label>
+          <input id="olx-import-tags" class="form-control rounded-4" name="tags" value="{{ imported.tags }}" placeholder="freezer, cozinha, comércio, campinas, usado" data-tag-input>
+          <div class="form-text">O app chuta tags pelo título/categoria e também mostra as que você já usou.</div>
+          <div class="vf-tag-suggestions mt-2" data-tag-suggestions-for="olx-import-tags">
+            {% for item in tag_suggestions[:30] %}
+              <button type="button" class="vf-tag-suggestion" data-tag-value="{{ item.tag }}">{{ item.tag }} <small>{{ item.count }}x</small></button>
+            {% else %}
+              <span class="text-muted small">Ainda sem sugestões do seu histórico.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Imagem de capa</label>
+          <input class="form-control rounded-4" name="image_url" value="{{ imported.image_url }}" placeholder="URL ou /uploads/capa_importada.jpg">
+          <div class="form-text">Se a capa não veio por bloqueio, cole a URL pública da imagem aqui. O app tenta baixar e salvar em data/uploads ao salvar.</div>
+        </div>
+        {% if imported.image_url %}
+        <div class="col-12">
+          <div class="vf-import-preview-img rounded-4" style="background-image:url('{{ imported.image_url }}')"></div>
+        </div>
+        {% endif %}
+        <div class="col-12 d-flex flex-wrap gap-2">
+          <button class="btn btn-vf rounded-pill px-4">Salvar produto + link OLX</button>
+          <a class="btn btn-light rounded-pill px-4" href="{{ imported.source_url }}" target="_blank">Abrir anúncio original</a>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

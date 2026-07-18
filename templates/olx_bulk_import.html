@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4 justify-content-center">
+  <div class="col-xl-9">
+    <div class="vf-card rounded-5 p-4 p-md-5 mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <h1 class="h2 fw-black mb-1">🧺 Importar OLX em lote</h1>
+          <p class="text-muted mb-0">Cole vários links, um por linha. O app tenta importar e salvar os anúncios automaticamente.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-light rounded-pill" href="{{ url_for('olx_import') }}">Importar 1 link</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('text_import') }}">Importar por texto</a>
+          <a class="btn btn-light rounded-pill" href="{{ url_for('products') }}">Produtos</a>
+        </div>
+      </div>
+
+      <form method="post" class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Links da OLX</label>
+          <textarea required class="form-control rounded-4" name="urls" rows="9" placeholder="https://sp.olx.com.br/...\nhttps://sp.olx.com.br/...\nhttps://sp.olx.com.br/...">{{ urls }}</textarea>
+          <div class="form-text">Dica: se algum link der 403 no Render, é bloqueio da OLX contra servidor. Para esse anúncio específico, use o importador por texto colado.</div>
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2">
+          <button class="btn btn-vf rounded-pill px-4">Importar e salvar todos</button>
+          <a class="btn btn-light rounded-pill px-4" href="{{ url_for('products') }}">Cancelar</a>
+        </div>
+      </form>
+    </div>
+
+    {% if results %}
+    <div class="vf-card rounded-5 p-4 p-md-5">
+      <h2 class="h4 fw-black mb-3">Resultado da importação</h2>
+      <div class="d-grid gap-2">
+        {% for item in results %}
+          <div class="vf-bulk-result {{ 'is-ok' if item.ok else 'is-fail' }}">
+            <div>
+              <strong>{{ '✅' if item.ok else '⚠️' }} {{ item.title or item.url }}</strong><br>
+              <small class="text-muted">{{ item.message }}</small>
+            </div>
+            <a class="btn btn-sm btn-light rounded-pill" href="{{ item.url }}" target="_blank">abrir</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
